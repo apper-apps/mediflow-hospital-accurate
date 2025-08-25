@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import { format, addDays, startOfWeek } from "date-fns";
-import Card from "@/components/atoms/Card";
-import Button from "@/components/atoms/Button";
-import Input from "@/components/atoms/Input";
-import Badge from "@/components/atoms/Badge";
+import { addDays, format, startOfWeek } from "date-fns";
 import ApperIcon from "@/components/ApperIcon";
 import StatusIndicator from "@/components/molecules/StatusIndicator";
-import Loading from "@/components/ui/Loading";
+import Card from "@/components/atoms/Card";
+import Button from "@/components/atoms/Button";
+import Badge from "@/components/atoms/Badge";
+import Input from "@/components/atoms/Input";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
 import appointmentService from "@/services/api/appointmentService";
 import patientService from "@/services/api/patientService";
 
@@ -75,13 +75,15 @@ const Appointments = () => {
     loadData();
   }, []);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const appointmentData = {
         ...formData,
         id: `APT-${Date.now()}`,
-        status: "scheduled"
+        Name: `APT-${Date.now()}`,
+        status: "scheduled",
+        status_c: "scheduled"
       };
 
       const newAppointment = await appointmentService.create(appointmentData);
@@ -104,9 +106,9 @@ const Appointments = () => {
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {
       const appointment = appointments.find(a => a.Id === appointmentId);
-      const updatedAppointment = await appointmentService.update(appointmentId, { 
+const updatedAppointment = await appointmentService.update(appointmentId, { 
         ...appointment, 
-        status: newStatus 
+        status_c: newStatus 
       });
       
       const updatedAppointments = appointments.map(a => 
@@ -121,8 +123,8 @@ const Appointments = () => {
 
   const getFilteredAppointments = () => {
     const selectedDateString = format(selectedDate, "yyyy-MM-dd");
-    return appointments.filter(apt => 
-      format(new Date(apt.date), "yyyy-MM-dd") === selectedDateString
+return appointments.filter(apt => 
+      format(new Date(apt.date_c || apt.date), "yyyy-MM-dd") === selectedDateString
     );
   };
 
@@ -132,15 +134,15 @@ const Appointments = () => {
     
     return weekDays.map(day => ({
       date: day,
-      appointments: appointments.filter(apt => 
-        format(new Date(apt.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
+appointments: appointments.filter(apt => 
+        format(new Date(apt.date_c || apt.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
       )
     }));
   };
 
   const getPatientName = (patientId) => {
-    const patient = patients.find(p => p.Id === patientId);
-    return patient ? patient.name : "Unknown Patient";
+const patient = patients.find(p => p.Id === patientId);
+    return patient ? patient.Name : "Unknown Patient";
   };
 
   if (loading) return <Loading variant="skeleton" />;
@@ -230,10 +232,10 @@ const Appointments = () => {
                     className="flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                     required
                   >
-                    <option value="">Select Patient</option>
+<option value="">Select Patient</option>
                     {patients.map(patient => (
                       <option key={patient.Id} value={patient.Id}>
-                        {patient.name} (ID: {patient.id})
+                        {patient.Name} (ID: {patient.Id})
                       </option>
                     ))}
                   </select>
@@ -344,47 +346,47 @@ const Appointments = () => {
                           <ApperIcon name="Clock" className="w-6 h-6 text-accent" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-slate-900">{appointment.timeSlot}</h3>
-                          <p className="text-sm text-slate-500">ID: {appointment.id}</p>
+<h3 className="font-semibold text-slate-900">{appointment.time_slot_c || appointment.timeSlot}</h3>
+                        <p className="text-sm text-slate-500">ID: {appointment.Name || appointment.Id}</p>
                         </div>
                       </div>
-                      <StatusIndicator status={appointment.status} size="sm" />
+<StatusIndicator status={appointment.status_c || appointment.status} size="sm" />
                     </div>
 
                     <div className="space-y-3">
                       <div>
-                        <span className="text-slate-500 text-sm">Patient:</span>
-                        <p className="font-medium text-slate-900">{getPatientName(appointment.patientId)}</p>
+<span className="text-slate-500 text-sm">Patient:</span>
+                        <p className="font-medium text-slate-900">{getPatientName(appointment.patient_id_c?.Id || appointment.patient_id_c || appointment.patientId)}</p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-slate-500">Doctor:</span>
-                          <p className="font-medium text-slate-900 capitalize">{appointment.doctorId}</p>
+<span className="text-slate-500">Doctor:</span>
+                          <p className="font-medium text-slate-900 capitalize">{appointment.doctor_id_c || appointment.doctorId}</p>
                         </div>
                         <div>
                           <span className="text-slate-500">Department:</span>
                           <Badge variant="primary" size="sm" className="capitalize">
-                            {appointment.department}
+                            {appointment.department_c?.Name || appointment.department_c || appointment.department}
                           </Badge>
                         </div>
                       </div>
 
                       {appointment.notes && (
-                        <div>
+<div>
                           <span className="text-slate-500 text-sm">Notes:</span>
                           <p className="text-sm text-slate-700 mt-1 bg-slate-50 p-2 rounded-lg">
-                            {appointment.notes}
+                            {appointment.notes_c || appointment.notes}
                           </p>
                         </div>
                       )}
 
-                      <div className="flex gap-2 pt-4">
+<div className="flex gap-2 pt-4">
                         <Button 
                           variant="success" 
                           size="sm" 
                           onClick={() => handleStatusUpdate(appointment.Id, "completed")}
-                          disabled={appointment.status === "completed"}
+                          disabled={(appointment.status_c || appointment.status) === "completed"}
                           className="flex-1"
                         >
                           Complete
@@ -393,7 +395,7 @@ const Appointments = () => {
                           variant="danger" 
                           size="sm" 
                           onClick={() => handleStatusUpdate(appointment.Id, "cancelled")}
-                          disabled={appointment.status === "cancelled"}
+                          disabled={(appointment.status_c || appointment.status) === "cancelled"}
                           className="flex-1"
                         >
                           Cancel
@@ -431,12 +433,12 @@ const Appointments = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {day.appointments.map((appointment) => (
                       <div key={appointment.Id} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-slate-900">{appointment.timeSlot}</span>
-                          <StatusIndicator status={appointment.status} size="sm" />
+<div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-slate-900">{appointment.time_slot_c || appointment.timeSlot}</span>
+                          <StatusIndicator status={appointment.status_c || appointment.status} size="sm" />
                         </div>
-                        <p className="text-sm text-slate-600">{getPatientName(appointment.patientId)}</p>
-                        <p className="text-xs text-slate-500 capitalize">{appointment.department}</p>
+                        <p className="text-sm text-slate-600">{getPatientName(appointment.patient_id_c?.Id || appointment.patient_id_c || appointment.patientId)}</p>
+                        <p className="text-xs text-slate-500 capitalize">{appointment.department_c?.Name || appointment.department_c || appointment.department}</p>
                       </div>
                     ))}
                   </div>

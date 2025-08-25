@@ -69,14 +69,14 @@ const Patients = () => {
     let filtered = patients;
 
     if (searchTerm) {
-      filtered = filtered.filter(patient =>
-        patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.id.toLowerCase().includes(searchTerm.toLowerCase())
+filtered = filtered.filter(patient =>
+        (patient.Name || patient.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (patient.Id || patient.id || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (filterValue) {
-      filtered = filtered.filter(patient => patient.currentDepartment === filterValue);
+filtered = filtered.filter(patient => (patient.current_department_c?.Name || patient.current_department_c || patient.currentDepartment) === filterValue);
     }
 
     setFilteredPatients(filtered);
@@ -85,12 +85,12 @@ const Patients = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const patientData = {
+const patientData = {
         ...formData,
-        age: parseInt(formData.age),
+        age_c: parseInt(formData.age),
         allergies: formData.allergies.split(",").map(a => a.trim()).filter(a => a),
-        admissionDate: new Date().toISOString(),
-        id: `PAT-${Date.now()}`
+        admission_date_c: new Date().toISOString(),
+        Name: `PAT-${Date.now()}`
       };
 
       const newPatient = await patientService.create(patientData);
@@ -117,7 +117,7 @@ const Patients = () => {
   const handleStatusUpdate = async (patientId, newStatus) => {
     try {
       const patient = patients.find(p => p.Id === patientId);
-      const updatedPatient = await patientService.update(patientId, { ...patient, status: newStatus });
+const updatedPatient = await patientService.update(patientId, { ...patient, status_c: newStatus });
       
       const updatedPatients = patients.map(p => 
         p.Id === patientId ? updatedPatient : p
@@ -305,47 +305,47 @@ const Patients = () => {
                       <ApperIcon name="User" className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">{patient.name}</h3>
-                      <p className="text-sm text-slate-500">ID: {patient.id}</p>
+<h3 className="font-semibold text-slate-900">{patient.Name}</h3>
+                      <p className="text-sm text-slate-500">ID: {patient.Id}</p>
                     </div>
                   </div>
-                  <StatusIndicator status={patient.status} size="sm" />
+<StatusIndicator status={patient.status_c || patient.status} size="sm" />
                 </div>
 
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-slate-500">Age:</span>
-                      <span className="ml-2 font-medium text-slate-900">{patient.age}</span>
+<span className="text-slate-500">Age:</span>
+                      <span className="ml-2 font-medium text-slate-900">{patient.age_c || patient.age}</span>
                     </div>
                     <div>
                       <span className="text-slate-500">Gender:</span>
-                      <span className="ml-2 font-medium text-slate-900 capitalize">{patient.gender}</span>
+                      <span className="ml-2 font-medium text-slate-900 capitalize">{patient.gender_c || patient.gender}</span>
                     </div>
                     <div>
                       <span className="text-slate-500">Blood:</span>
-                      <span className="ml-2 font-medium text-slate-900">{patient.bloodGroup}</span>
+                      <span className="ml-2 font-medium text-slate-900">{patient.blood_group_c || patient.bloodGroup}</span>
                     </div>
                     <div>
                       <span className="text-slate-500">Phone:</span>
-                      <span className="ml-2 font-medium text-slate-900">{patient.phone}</span>
+                      <span className="ml-2 font-medium text-slate-900">{patient.phone_c || patient.phone}</span>
                     </div>
                   </div>
 
                   <div>
                     <span className="text-slate-500 text-sm">Department:</span>
-                    <Badge variant="primary" size="sm" className="ml-2 capitalize">
-                      {patient.currentDepartment}
+<Badge variant="primary" size="sm" className="ml-2 capitalize">
+                      {patient.current_department_c?.Name || patient.current_department_c || patient.currentDepartment}
                     </Badge>
                   </div>
 
-                  {patient.allergies && patient.allergies.length > 0 && (
+{(patient.allergies_c || patient.allergies) && (
                     <div>
                       <span className="text-slate-500 text-sm">Allergies:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {patient.allergies.map((allergy, idx) => (
+                        {(patient.allergies_c ? patient.allergies_c.split('\n').filter(a => a.trim()) : patient.allergies || []).map((allergy, idx) => (
                           <Badge key={idx} variant="warning" size="sm">
-                            {allergy}
+                            {allergy.trim ? allergy.trim() : allergy}
                           </Badge>
                         ))}
                       </div>
@@ -353,8 +353,8 @@ const Patients = () => {
                   )}
 
                   <div className="flex gap-2 pt-4">
-                    <select
-                      value={patient.status}
+<select
+                      value={patient.status_c || patient.status}
                       onChange={(e) => handleStatusUpdate(patient.Id, e.target.value)}
                       className="flex-1 h-8 px-2 py-1 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:border-primary focus:outline-none"
                     >

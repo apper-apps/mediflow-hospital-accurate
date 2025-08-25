@@ -41,26 +41,27 @@ const Beds = () => {
   }, []);
 
   const getPatientByBed = (bedId) => {
-    const bed = beds.find(b => b.Id === bedId);
-    if (!bed || !bed.patientId) return null;
-    return patients.find(p => p.Id === bed.patientId);
+const bed = beds.find(b => b.Id === bedId);
+    if (!bed || !(bed.patient_id_c || bed.patientId)) return null;
+    const patientId = bed.patient_id_c?.Id || bed.patient_id_c || bed.patientId;
+    return patients.find(p => p.Id === patientId);
   };
 
   const getWards = () => {
-    const wardSet = new Set(beds.map(bed => bed.wardName));
+const wardSet = new Set(beds.map(bed => bed.ward_name_c || bed.wardName));
     return Array.from(wardSet);
   };
 
   const getFilteredBeds = () => {
-    if (selectedWard === "all") return beds;
-    return beds.filter(bed => bed.wardName === selectedWard);
+if (selectedWard === "all") return beds;
+    return beds.filter(bed => (bed.ward_name_c || bed.wardName) === selectedWard);
   };
 
   const getWardStats = (wardName) => {
-    const wardBeds = beds.filter(bed => bed.wardName === wardName);
-    const occupied = wardBeds.filter(bed => bed.isOccupied).length;
+const wardBeds = beds.filter(bed => (bed.ward_name_c || bed.wardName) === wardName);
+    const occupied = wardBeds.filter(bed => bed.is_occupied_c || bed.isOccupied).length;
     const total = wardBeds.length;
-    const occupancyRate = Math.round((occupied / total) * 100);
+    const occupancyRate = total > 0 ? Math.round((occupied / total) * 100) : 0;
     
     return { occupied, total, available: total - occupied, occupancyRate };
   };
@@ -76,19 +77,19 @@ const [showAddModal, setShowAddModal] = useState(false);
       let updatedBed;
       if (action === "occupy") {
         // In a real app, you'd have a patient selection modal
-        updatedBed = await bedService.update(bedId, {
+updatedBed = await bedService.update(bedId, {
           ...bed,
-          isOccupied: true,
-          patientId: patients[0]?.Id || null, // Using first available patient for demo
-          admittedDate: new Date().toISOString()
+          is_occupied_c: true,
+          patient_id_c: patients[0]?.Id || null, // Using first available patient for demo
+          admitted_date_c: new Date().toISOString()
         });
         toast.success("Bed assigned to patient");
       } else if (action === "discharge") {
-        updatedBed = await bedService.update(bedId, {
+updatedBed = await bedService.update(bedId, {
           ...bed,
-          isOccupied: false,
-          patientId: null,
-          admittedDate: null
+          is_occupied_c: false,
+          patient_id_c: null,
+          admitted_date_c: null
         });
         toast.success("Bed is now available");
       }
@@ -102,13 +103,13 @@ const [showAddModal, setShowAddModal] = useState(false);
   const handleAddBed = async (bedData) => {
     try {
       setAddingBed(true);
-      const newBed = await bedService.create({
-        bedNumber: bedData.bedNumber,
-        wardName: bedData.wardName,
+const newBed = await bedService.create({
+        bed_number_c: bedData.bedNumber,
+        ward_name_c: bedData.wardName,
         bedType: bedData.bedType || "Standard",
-        isOccupied: false,
-        patientId: null,
-        admittedDate: null,
+        is_occupied_c: false,
+        patient_id_c: null,
+        admitted_date_c: null,
         isClean: true,
         maintenanceStatus: "operational"
       });
@@ -186,7 +187,7 @@ const [showAddModal, setShowAddModal] = useState(false);
                     onClick={() => setSelectedWard(selectedWard === wardName ? "all" : wardName)}>
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-semibold text-slate-900">{wardName}</h3>
+<h3 className="font-semibold text-slate-900">{wardName}</h3>
                     <p className="text-sm text-slate-500">Ward</p>
                   </div>
                   <Badge 
@@ -271,27 +272,27 @@ const [showAddModal, setShowAddModal] = useState(false);
                 className="group"
               >
                 <Card className={`p-4 aspect-square flex flex-col items-center justify-center transition-all duration-200 cursor-pointer ${
-                  bed.isOccupied 
+(bed.is_occupied_c || bed.isOccupied) 
                     ? 'bg-gradient-to-br from-error/5 to-error/10 border-error/20 hover:border-error/40' 
                     : 'bg-gradient-to-br from-success/5 to-success/10 border-success/20 hover:border-success/40'
                 } hover:shadow-lg hover:scale-105`}>
                   
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${
-                    bed.isOccupied 
+(bed.is_occupied_c || bed.isOccupied) 
                       ? 'bg-gradient-to-br from-error/20 to-error/30' 
                       : 'bg-gradient-to-br from-success/20 to-success/30'
                   }`}>
                     <ApperIcon 
                       name="Bed" 
-                      className={`w-4 h-4 ${bed.isOccupied ? 'text-error' : 'text-success'}`} 
+                      className={`w-4 h-4 ${(bed.is_occupied_c || bed.isOccupied) ? 'text-error' : 'text-success'}`} 
                     />
                   </div>
                   
-                  <div className="text-center">
-                    <p className="font-semibold text-slate-900 text-sm">{bed.bedNumber}</p>
-                    <p className="text-xs text-slate-500 mb-1">{bed.wardName}</p>
+<div className="text-center">
+                    <p className="font-semibold text-slate-900 text-sm">{bed.bed_number_c || bed.bedNumber}</p>
+                    <p className="text-xs text-slate-500 mb-1">{bed.ward_name_c || bed.wardName}</p>
                     <StatusIndicator 
-                      status={bed.isOccupied ? "occupied" : "available"} 
+                      status={(bed.is_occupied_c || bed.isOccupied) ? "occupied" : "available"} 
                       size="sm" 
                       showDot={false}
                     />
@@ -299,15 +300,15 @@ const [showAddModal, setShowAddModal] = useState(false);
 
                   {patient && (
                     <div className="mt-2 text-center">
-                      <p className="text-xs font-medium text-slate-700 truncate max-w-full">
-                        {patient.name}
+<p className="text-xs font-medium text-slate-700 truncate max-w-full">
+                        {patient.Name}
                       </p>
                     </div>
                   )}
 
                   {/* Action Buttons - Show on Hover */}
-                  <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl flex items-center justify-center">
-                    {bed.isOccupied ? (
+<div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl flex items-center justify-center">
+{(bed.is_occupied_c || bed.isOccupied) ? (
                       <Button
                         variant="success"
                         size="sm"
@@ -363,25 +364,25 @@ const [showAddModal, setShowAddModal] = useState(false);
                         />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-slate-900">Bed {bed.bedNumber}</h3>
-                        <p className="text-slate-500">{bed.wardName} Ward</p>
+<h3 className="font-semibold text-slate-900">Bed {bed.bed_number_c || bed.bedNumber}</h3>
+                        <p className="text-slate-500">{bed.ward_name_c || bed.wardName} Ward</p>
                       </div>
                     </div>
 
                     <div className="flex items-center space-x-4">
-                      <StatusIndicator status={bed.isOccupied ? "occupied" : "available"} />
+<StatusIndicator status={(bed.is_occupied_c || bed.isOccupied) ? "occupied" : "available"} />
                       
-                      {bed.isOccupied ? (
+{(bed.is_occupied_c || bed.isOccupied) ? (
                         <div className="text-right mr-4">
                           {patient && (
                             <>
-                              <p className="font-medium text-slate-900">{patient.name}</p>
-                              <p className="text-sm text-slate-500">ID: {patient.id}</p>
+<p className="font-medium text-slate-900">{patient.Name}</p>
+                              <p className="text-sm text-slate-500">ID: {patient.Id}</p>
                             </>
                           )}
-                          {bed.admittedDate && (
+{(bed.admitted_date_c || bed.admittedDate) && (
                             <p className="text-xs text-slate-400">
-                              Admitted: {new Date(bed.admittedDate).toLocaleDateString()}
+                              Admitted: {new Date(bed.admitted_date_c || bed.admittedDate).toLocaleDateString()}
                             </p>
                           )}
                         </div>
@@ -392,7 +393,7 @@ const [showAddModal, setShowAddModal] = useState(false);
                       )}
 
                       <div className="flex space-x-2">
-                        {bed.isOccupied ? (
+{(bed.is_occupied_c || bed.isOccupied) ? (
                           <Button
                             variant="success"
                             size="sm"

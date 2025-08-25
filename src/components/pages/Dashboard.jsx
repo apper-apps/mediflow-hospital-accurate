@@ -13,7 +13,7 @@ import bedService from "@/services/api/bedService";
 import departmentService from "@/services/api/departmentService";
 
 const Dashboard = () => {
-  const [dashboardData, setDashboardData] = useState({
+const [dashboardData, setDashboardData] = useState({
     stats: {},
     recentPatients: [],
     todayAppointments: [],
@@ -38,33 +38,34 @@ const Dashboard = () => {
       // Calculate stats
       const today = new Date().toDateString();
       const todayAppointments = appointments.filter(apt => 
-        new Date(apt.date).toDateString() === today
+        new Date(apt.date_c || apt.date).toDateString() === today
       );
       
-      const occupiedBeds = beds.filter(bed => bed.isOccupied);
-      const admittedPatients = patients.filter(patient => patient.status === "admitted");
+      const occupiedBeds = beds.filter(bed => bed.is_occupied_c || bed.isOccupied);
+      const admittedPatients = patients.filter(patient => (patient.status_c || patient.status) === "admitted");
 
       const stats = {
         totalPatients: patients.length,
         admittedPatients: admittedPatients.length,
         todayAppointments: todayAppointments.length,
         availableBeds: beds.length - occupiedBeds.length,
-        bedOccupancyRate: Math.round((occupiedBeds.length / beds.length) * 100)
+        bedOccupancyRate: beds.length > 0 ? Math.round((occupiedBeds.length / beds.length) * 100) : 0
       };
 
       // Recent patients (last 5)
       const recentPatients = patients
-        .sort((a, b) => new Date(b.admissionDate) - new Date(a.admissionDate))
+        .sort((a, b) => new Date(b.admission_date_c || b.admissionDate || 0) - new Date(a.admission_date_c || a.admissionDate || 0))
         .slice(0, 5);
 
       // Bed occupancy by ward
       const bedOccupancy = beds.reduce((acc, bed) => {
-        if (!acc[bed.wardName]) {
-          acc[bed.wardName] = { total: 0, occupied: 0 };
+        const wardName = bed.ward_name_c || bed.wardName;
+        if (!acc[wardName]) {
+          acc[wardName] = { total: 0, occupied: 0 };
         }
-        acc[bed.wardName].total++;
-        if (bed.isOccupied) {
-          acc[bed.wardName].occupied++;
+        acc[wardName].total++;
+        if (bed.is_occupied_c || bed.isOccupied) {
+          acc[wardName].occupied++;
         }
         return acc;
       }, {});
@@ -86,7 +87,6 @@ const Dashboard = () => {
   useEffect(() => {
     loadDashboardData();
   }, []);
-
   if (loading) return <Loading variant="skeleton" />;
   if (error) return <Error message={error} onRetry={loadDashboardData} />;
 
@@ -201,13 +201,13 @@ const Dashboard = () => {
                       <ApperIcon name="User" className="w-5 h-5 text-slate-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-900">{patient.name}</p>
-                      <p className="text-sm text-slate-500">ID: {patient.id}</p>
+<p className="font-medium text-slate-900">{patient.Name}</p>
+                      <p className="text-sm text-slate-500">ID: {patient.Id}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <StatusIndicator status={patient.status} size="sm" />
-                    <p className="text-xs text-slate-500 mt-1">{patient.currentDepartment}</p>
+                    <StatusIndicator status={patient.status_c || patient.status} size="sm" />
+                    <p className="text-xs text-slate-500 mt-1">{patient.current_department_c?.Name || patient.current_department_c || patient.currentDepartment}</p>
                   </div>
                 </div>
               ))}
@@ -236,13 +236,13 @@ const Dashboard = () => {
                       <ApperIcon name="Clock" className="w-5 h-5 text-accent" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-900">{appointment.timeSlot}</p>
-                      <p className="text-sm text-slate-500">{appointment.department}</p>
+<p className="font-medium text-slate-900">{appointment.time_slot_c || appointment.timeSlot}</p>
+                      <p className="text-sm text-slate-500">{appointment.department_c?.Name || appointment.department_c || appointment.department}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <StatusIndicator status={appointment.status} size="sm" />
-                    <p className="text-xs text-slate-500 mt-1">Dr. {appointment.doctorId}</p>
+                    <StatusIndicator status={appointment.status_c || appointment.status} size="sm" />
+                    <p className="text-xs text-slate-500 mt-1">Dr. {appointment.doctor_id_c || appointment.doctorId}</p>
                   </div>
                 </div>
               ))}
@@ -265,17 +265,17 @@ const Dashboard = () => {
               {dashboardData.departmentStatus.map((dept) => (
                 <div key={dept.Id} className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-200">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-slate-900">{dept.name}</h4>
-                    <Badge variant="primary" size="sm">{dept.activeStaff} staff</Badge>
+<h4 className="font-medium text-slate-900">{dept.Name}</h4>
+                    <Badge variant="primary" size="sm">{dept.active_staff_c || dept.activeStaff} staff</Badge>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-600">Queue:</span>
-                      <span className="font-medium text-slate-900">{dept.currentQueue} patients</span>
+                      <span className="font-medium text-slate-900">{dept.current_queue_c || dept.currentQueue} patients</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-600">Wait time:</span>
-                      <span className="font-medium text-warning">{dept.averageWaitTime} min</span>
+                      <span className="font-medium text-warning">{dept.average_wait_time_c || dept.averageWaitTime} min</span>
                     </div>
                   </div>
                 </div>

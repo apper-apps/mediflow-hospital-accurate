@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import Button from "@/components/atoms/Button";
 import ApperIcon from "@/components/ApperIcon";
 import { cn } from "@/utils/cn";
+import { AuthContext } from "../../App";
 
 const Header = ({ onMenuClick }) => {
   const location = useLocation();
+  const { logout } = useContext(AuthContext);
   
   const pageConfig = {
     "/": { title: "Dashboard", subtitle: "Hospital Overview & Analytics" },
@@ -40,7 +42,7 @@ const Header = ({ onMenuClick }) => {
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center space-x-4">
+<div className="flex items-center space-x-4">
           {/* Quick Actions */}
           <div className="hidden md:flex items-center space-x-2">
             <Button variant="ghost" size="sm" className="text-slate-600 hover:text-primary">
@@ -58,6 +60,17 @@ const Header = ({ onMenuClick }) => {
             <div className="w-2 h-2 bg-success rounded-full pulse-green"></div>
             <span className="text-sm font-medium text-success">Online</span>
           </div>
+
+          {/* Logout Button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={logout}
+            className="text-slate-600 hover:text-error"
+          >
+            <ApperIcon name="LogOut" className="w-4 h-4 mr-2" />
+            <span className="hidden lg:inline">Logout</span>
+          </Button>
 
           {/* Emergency Button */}
           <Button 

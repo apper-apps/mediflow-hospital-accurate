@@ -51,12 +51,12 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const departmentData = {
+const departmentData = {
         ...formData,
         capacity: parseInt(formData.capacity),
-        activeStaff: parseInt(formData.activeStaff),
-        currentQueue: 0,
-        averageWaitTime: 30
+        active_staff_c: parseInt(formData.activeStaff),
+        current_queue_c: 0,
+        average_wait_time_c: 30
       };
 
       const newDepartment = await departmentService.create(departmentData);
@@ -77,7 +77,10 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
   };
 
   const getDepartmentPatients = (departmentName) => {
-    return patients.filter(patient => patient.currentDepartment === departmentName.toLowerCase());
+return patients.filter(patient => {
+      const dept = patient.current_department_c?.Name || patient.current_department_c || patient.currentDepartment;
+      return dept && dept.toLowerCase() === departmentName.toLowerCase();
+    });
   };
 
   const movePatientToNextStage = async (patientId, currentDepartment) => {
@@ -85,10 +88,11 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
       const patient = patients.find(p => p.Id === patientId);
       if (!patient) return;
 
-      const nextStatus = patient.status === "waiting" ? "admitted" : "discharged";
+const currentStatus = patient.status_c || patient.status;
+      const nextStatus = currentStatus === "waiting" ? "admitted" : "discharged";
       const updatedPatient = await patientService.update(patientId, {
         ...patient,
-        status: nextStatus
+        status_c: nextStatus
       });
 
       setPatients(prev => prev.map(p => p.Id === patientId ? updatedPatient : p));
@@ -263,9 +267,9 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {departments.map((department, index) => {
-            const departmentPatients = getDepartmentPatients(department.name);
-            const waitingPatients = departmentPatients.filter(p => p.status === "waiting");
-            const admittedPatients = departmentPatients.filter(p => p.status === "admitted");
+const departmentPatients = getDepartmentPatients(department.Name);
+            const waitingPatients = departmentPatients.filter(p => (p.status_c || p.status) === "waiting");
+            const admittedPatients = departmentPatients.filter(p => (p.status_c || p.status) === "admitted");
             
             return (
               <motion.div
@@ -285,16 +289,16 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
                           className={`w-6 h-6 text-${getDepartmentColor(department.name)}`} 
                         />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-slate-900 capitalize">{department.name}</h3>
-                        <p className="text-sm text-slate-500">Department</p>
-                      </div>
+<div>
+                      <h3 className="font-semibold text-slate-900 capitalize">{department.Name}</h3>
+                      <p className="text-sm text-slate-500">Department</p>
+                    </div>
                     </div>
                     <Badge 
-                      variant={getWaitTimeColor(department.averageWaitTime)}
+variant={getWaitTimeColor(department.average_wait_time_c || department.averageWaitTime)}
                       size="sm"
                     >
-                      {department.averageWaitTime} min
+                      {department.average_wait_time_c || department.averageWaitTime} min
                     </Badge>
                   </div>
 
@@ -315,7 +319,7 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
                     <span className="text-sm font-medium text-slate-600">Current Queue</span>
                     <div className="flex items-center space-x-2">
                       <div className={`w-2 h-2 rounded-full bg-${getDepartmentColor(department.name)}`}></div>
-                      <span className="text-lg font-bold text-slate-900">{department.currentQueue}</span>
+<span className="text-lg font-bold text-slate-900">{department.current_queue_c || department.currentQueue}</span>
                     </div>
                   </div>
 
@@ -324,7 +328,7 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
                     <span className="text-slate-600">Active Staff</span>
                     <div className="flex items-center space-x-1">
                       <ApperIcon name="Users" className="w-4 h-4 text-slate-400" />
-                      <span className="font-medium text-slate-900">{department.activeStaff}</span>
+<span className="font-medium text-slate-900">{department.active_staff_c || department.activeStaff}</span>
                     </div>
                   </div>
 
@@ -351,14 +355,14 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
         >
           <Card className="p-6">
             {(() => {
-              const department = departments.find(d => d.Id === selectedDepartment);
-              const departmentPatients = getDepartmentPatients(department.name);
+const department = departments.find(d => d.Id === selectedDepartment);
+              const departmentPatients = getDepartmentPatients(department.Name);
               
               return (
                 <>
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-slate-900 capitalize">
-                      {department.name} - Patient Queue
+<h3 className="text-xl font-semibold text-slate-900 capitalize">
+                      {department.Name} - Patient Queue
                     </h3>
                     <Button 
                       variant="ghost" 
@@ -372,7 +376,7 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
                     <Empty
                       icon="Users"
                       title="No patients in queue"
-                      description={`No patients are currently in the ${department.name} department.`}
+description={`No patients are currently in the ${department.Name} department.`}
                     />
                   ) : (
                     <div className="space-y-4">
@@ -392,31 +396,31 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
                               <div className="w-10 h-10 bg-gradient-to-br from-slate-200 to-slate-300 rounded-full flex items-center justify-center">
                                 <ApperIcon name="User" className="w-5 h-5 text-slate-600" />
                               </div>
-                              <div>
-                                <p className="font-medium text-slate-900">{patient.name}</p>
-                                <p className="text-sm text-slate-500">ID: {patient.id} • Age: {patient.age}</p>
+<div>
+                                <p className="font-medium text-slate-900">{patient.Name}</p>
+                                <p className="text-sm text-slate-500">ID: {patient.Id} • Age: {patient.age_c || patient.age}</p>
                               </div>
                             </div>
                           </div>
 
                           <div className="flex items-center space-x-4">
-                            <StatusIndicator status={patient.status} size="sm" />
+<StatusIndicator status={patient.status_c || patient.status} size="sm" />
                             <div className="flex items-center space-x-2">
-                              {patient.status === "waiting" && (
+{(patient.status_c || patient.status) === "waiting" && (
                                 <Button
                                   variant="primary"
-                                  size="sm"
-                                  onClick={() => movePatientToNextStage(patient.Id, department.name)}
+size="sm"
+                                  onClick={() => movePatientToNextStage(patient.Id, department.Name)}
                                 >
                                   <ApperIcon name="ArrowRight" className="w-4 h-4 mr-1" />
                                   Admit
                                 </Button>
                               )}
-                              {patient.status === "admitted" && (
+{(patient.status_c || patient.status) === "admitted" && (
                                 <Button
                                   variant="success"
-                                  size="sm"
-                                  onClick={() => movePatientToNextStage(patient.Id, department.name)}
+size="sm"
+                                  onClick={() => movePatientToNextStage(patient.Id, department.Name)}
                                 >
                                   <ApperIcon name="Check" className="w-4 h-4 mr-1" />
                                   Discharge
