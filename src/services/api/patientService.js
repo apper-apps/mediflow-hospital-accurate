@@ -167,14 +167,14 @@ class PatientService {
 
       const params = {
         records: [{
-          Name: patientData.name || patientData.Name,
+Name: patientData.name || patientData.Name,
           age_c: parseInt(patientData.age || patientData.age_c),
           gender_c: patientData.gender || patientData.gender_c,
           phone_c: patientData.phone || patientData.phone_c,
           emergency_contact_c: patientData.emergencyContact || patientData.emergency_contact_c,
           blood_group_c: patientData.bloodGroup || patientData.blood_group_c,
           allergies_c: allergiesText,
-          current_department_c: patientData.currentDepartment || patientData.current_department_c,
+          current_department_c: parseInt(patientData.currentDepartment || patientData.current_department_c),
           status_c: patientData.status || patientData.status_c || 'waiting',
           admission_date_c: patientData.admissionDate || patientData.admission_date_c || new Date().toISOString()
         }]
@@ -221,7 +221,7 @@ class PatientService {
         : patientData.allergies || '';
 
       const params = {
-        records: [{
+records: [{
           Id: id,
           Name: patientData.name || patientData.Name,
           age_c: parseInt(patientData.age || patientData.age_c),
@@ -230,7 +230,7 @@ class PatientService {
           emergency_contact_c: patientData.emergencyContact || patientData.emergency_contact_c,
           blood_group_c: patientData.bloodGroup || patientData.blood_group_c,
           allergies_c: allergiesText,
-          current_department_c: patientData.currentDepartment || patientData.current_department_c,
+          current_department_c: parseInt(patientData.currentDepartment || patientData.current_department_c),
           status_c: patientData.status || patientData.status_c,
           admission_date_c: patientData.admissionDate || patientData.admission_date_c
         }]

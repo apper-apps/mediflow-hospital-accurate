@@ -12,12 +12,15 @@ import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
 import patientService from "@/services/api/patientService";
+import departmentService from "@/services/api/departmentService";
 
 const Patients = () => {
   const [patients, setPatients] = useState([]);
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const [error, setError] = useState(null);
+  const [departments, setDepartments] = useState([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -31,14 +34,28 @@ const Patients = () => {
     status: "waiting"
   });
 
-  const departmentOptions = [
-    { value: "emergency", label: "Emergency" },
-    { value: "cardiology", label: "Cardiology" },
-    { value: "neurology", label: "Neurology" },
-    { value: "orthopedics", label: "Orthopedics" },
-    { value: "pediatrics", label: "Pediatrics" },
-    { value: "general", label: "General Medicine" }
-  ];
+// Load departments on component mount
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        setDepartmentsLoading(true);
+        const departmentData = await departmentService.getAll();
+        setDepartments(departmentData);
+      } catch (error) {
+        console.error("Failed to load departments:", error);
+        toast.error("Failed to load departments");
+      } finally {
+        setDepartmentsLoading(false);
+      }
+    };
+
+    loadDepartments();
+  }, []);
+
+  const departmentOptions = departments.map(dept => ({
+    value: dept.Id,
+    label: dept.Name
+  }));
 
   const statusOptions = [
     { value: "waiting", label: "Waiting" },
@@ -64,8 +81,7 @@ const Patients = () => {
   useEffect(() => {
     loadPatients();
   }, []);
-
-  const handleSearch = (searchTerm, filterValue) => {
+const handleSearch = (searchTerm, filterValue) => {
     let filtered = patients;
 
     if (searchTerm) {
@@ -76,7 +92,13 @@ filtered = filtered.filter(patient =>
     }
 
     if (filterValue) {
-filtered = filtered.filter(patient => (patient.current_department_c?.Name || patient.current_department_c || patient.currentDepartment) === filterValue);
+      // For department filter, compare with department ID or name
+      filtered = filtered.filter(patient => {
+        const patientDeptId = patient.current_department_c?.Id || patient.current_department_c;
+        const patientDeptName = patient.current_department_c?.Name;
+        
+        return patientDeptId == filterValue || patientDeptName === filterValue;
+      });
     }
 
     setFilteredPatients(filtered);
@@ -88,6 +110,7 @@ filtered = filtered.filter(patient => (patient.current_department_c?.Name || pat
 const patientData = {
         ...formData,
         age_c: parseInt(formData.age),
+        current_department_c: parseInt(formData.currentDepartment), // Convert to integer for lookup field
         allergies: formData.allergies.split(",").map(a => a.trim()).filter(a => a),
         admission_date_c: new Date().toISOString(),
         Name: `PAT-${Date.now()}`
@@ -105,7 +128,7 @@ const patientData = {
         emergencyContact: "",
         bloodGroup: "",
         allergies: "",
-        currentDepartment: "",
+currentDepartment: "",
         status: "waiting"
       });
       toast.success("Patient registered successfully!");
@@ -132,6 +155,9 @@ const updatedPatient = await patientService.update(patientId, { ...patient, stat
 
   if (loading) return <Loading variant="skeleton" />;
   if (error) return <Error message={error} onRetry={loadPatients} />;
+if (departmentsLoading) {
+    return <Loading message="Loading departments..." />;
+  }
 
   return (
     <div className="space-y-6">
@@ -158,7 +184,7 @@ const updatedPatient = await patientService.update(patientId, { ...patient, stat
         <SearchBar
           onSearch={handleSearch}
           placeholder="Search patients by name or ID..."
-          showFilter={true}
+showFilter={true}
           filterOptions={departmentOptions}
           onFilterChange={(filter) => handleSearch("", filter)}
         />
@@ -238,7 +264,7 @@ const updatedPatient = await patientService.update(patientId, { ...patient, stat
                       required
                     >
                       <option value="">Select Department</option>
-                      {departmentOptions.map(option => (
+{departmentOptions.map(option => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
