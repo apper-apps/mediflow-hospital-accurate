@@ -102,7 +102,12 @@ const currentStatus = patient.status_c || patient.status;
     }
   };
 
-  const getDepartmentIcon = (departmentName) => {
+const getDepartmentIcon = (departmentName) => {
+    // Add null safety check to prevent TypeError
+    if (!departmentName || typeof departmentName !== 'string') {
+      return "Building2";
+    }
+    
     const icons = {
       emergency: "AlertTriangle",
       cardiology: "Heart",
@@ -115,6 +120,11 @@ const currentStatus = patient.status_c || patient.status;
   };
 
   const getDepartmentColor = (departmentName) => {
+    // Add null safety check to prevent TypeError
+    if (!departmentName || typeof departmentName !== 'string') {
+      return "primary";
+    }
+    
     const colors = {
       emergency: "error",
       cardiology: "danger",
@@ -282,14 +292,14 @@ const departmentPatients = getDepartmentPatients(department.Name);
               >
                 <Card className={`p-6 transition-all duration-300 ${selectedDepartment === department.Id ? 'ring-2 ring-primary shadow-lg transform scale-[1.02]' : 'hover:shadow-lg hover:-translate-y-1'}`}>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-12 h-12 bg-gradient-to-br from-${getDepartmentColor(department.name)}/20 to-${getDepartmentColor(department.name)}/30 rounded-xl flex items-center justify-center`}>
+<div className="flex items-center space-x-3">
+                      <div className={`w-12 h-12 bg-gradient-to-br from-${getDepartmentColor(department.Name)}/20 to-${getDepartmentColor(department.Name)}/30 rounded-xl flex items-center justify-center`}>
                         <ApperIcon 
-                          name={getDepartmentIcon(department.name)} 
-                          className={`w-6 h-6 text-${getDepartmentColor(department.name)}`} 
+                          name={getDepartmentIcon(department.Name)} 
+                          className={`w-6 h-6 text-${getDepartmentColor(department.Name)}`} 
                         />
                       </div>
-<div>
+                      <div>
                       <h3 className="font-semibold text-slate-900 capitalize">{department.Name}</h3>
                       <p className="text-sm text-slate-500">Department</p>
                     </div>
@@ -315,11 +325,11 @@ variant={getWaitTimeColor(department.average_wait_time_c || department.averageWa
                   </div>
 
                   {/* Current Queue */}
-                  <div className="flex items-center justify-between mb-4">
+<div className="flex items-center justify-between mb-4">
                     <span className="text-sm font-medium text-slate-600">Current Queue</span>
                     <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full bg-${getDepartmentColor(department.name)}`}></div>
-<span className="text-lg font-bold text-slate-900">{department.current_queue_c || department.currentQueue}</span>
+                      <div className={`w-2 h-2 rounded-full bg-${getDepartmentColor(department.Name)}`}></div>
+                      <span className="text-lg font-bold text-slate-900">{department.current_queue_c || department.currentQueue}</span>
                     </div>
                   </div>
 
