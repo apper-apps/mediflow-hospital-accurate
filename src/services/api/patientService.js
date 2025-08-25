@@ -6,7 +6,7 @@ class PatientService {
       apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
     });
     this.tableName = 'patient_c';
-  }
+}
 
   async getAll() {
     try {
@@ -174,7 +174,8 @@ Name: patientData.name || patientData.Name,
           emergency_contact_c: patientData.emergencyContact || patientData.emergency_contact_c,
           blood_group_c: patientData.bloodGroup || patientData.blood_group_c,
           allergies_c: allergiesText,
-          current_department_c: parseInt(patientData.currentDepartment || patientData.current_department_c),
+          current_department_c: (patientData.currentDepartment || patientData.current_department_c) ? 
+            parseInt(patientData.currentDepartment || patientData.current_department_c) : null,
           status_c: patientData.status || patientData.status_c || 'waiting',
           admission_date_c: patientData.admissionDate || patientData.admission_date_c || new Date().toISOString()
         }]
@@ -186,7 +187,6 @@ Name: patientData.name || patientData.Name,
         console.error(response.message);
         throw new Error(response.message);
       }
-
       if (response.results) {
         const successfulRecords = response.results.filter(result => result.success);
         const failedRecords = response.results.filter(result => !result.success);
@@ -222,7 +222,7 @@ Name: patientData.name || patientData.Name,
 
       const params = {
 records: [{
-          Id: id,
+Id: id,
           Name: patientData.name || patientData.Name,
           age_c: parseInt(patientData.age || patientData.age_c),
           gender_c: patientData.gender || patientData.gender_c,
@@ -230,7 +230,8 @@ records: [{
           emergency_contact_c: patientData.emergencyContact || patientData.emergency_contact_c,
           blood_group_c: patientData.bloodGroup || patientData.blood_group_c,
           allergies_c: allergiesText,
-          current_department_c: parseInt(patientData.currentDepartment || patientData.current_department_c),
+          current_department_c: (patientData.currentDepartment || patientData.current_department_c) ? 
+            parseInt(patientData.currentDepartment || patientData.current_department_c) : null,
           status_c: patientData.status || patientData.status_c,
           admission_date_c: patientData.admissionDate || patientData.admission_date_c
         }]
