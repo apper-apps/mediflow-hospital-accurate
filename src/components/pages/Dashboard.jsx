@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import Card from "@/components/atoms/Card";
-import Badge from "@/components/atoms/Badge";
-import Button from "@/components/atoms/Button";
 import ApperIcon from "@/components/ApperIcon";
 import StatusIndicator from "@/components/molecules/StatusIndicator";
-import Loading from "@/components/ui/Loading";
+import Card from "@/components/atoms/Card";
+import Button from "@/components/atoms/Button";
+import Badge from "@/components/atoms/Badge";
+import Beds from "@/components/pages/Beds";
+import Patients from "@/components/pages/Patients";
 import Error from "@/components/ui/Error";
-import patientService from "@/services/api/patientService";
+import Loading from "@/components/ui/Loading";
 import appointmentService from "@/services/api/appointmentService";
+import patientService from "@/services/api/patientService";
 import bedService from "@/services/api/bedService";
 import departmentService from "@/services/api/departmentService";
 
@@ -206,7 +208,7 @@ const [dashboardData, setDashboardData] = useState({
                     </div>
                   </div>
                   <div className="text-right">
-                    <StatusIndicator status={patient.status_c || patient.status} size="sm" />
+<StatusIndicator status={patient.status_c} size="sm" />
                     <p className="text-xs text-slate-500 mt-1">{patient.current_department_c?.Name || patient.current_department_c || patient.currentDepartment}</p>
                   </div>
                 </div>
@@ -236,13 +238,13 @@ const [dashboardData, setDashboardData] = useState({
                       <ApperIcon name="Clock" className="w-5 h-5 text-accent" />
                     </div>
                     <div>
-<p className="font-medium text-slate-900">{appointment.time_slot_c || appointment.timeSlot}</p>
+<p className="font-medium text-slate-900">{appointment.time_slot_c}</p>
                       <p className="text-sm text-slate-500">{appointment.department_c?.Name || appointment.department_c || appointment.department}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <StatusIndicator status={appointment.status_c || appointment.status} size="sm" />
-                    <p className="text-xs text-slate-500 mt-1">Dr. {appointment.doctor_id_c || appointment.doctorId}</p>
+<StatusIndicator status={appointment.status_c} size="sm" />
+<p className="text-xs text-slate-500 mt-1">Dr. {appointment.doctor_id_c}</p>
                   </div>
                 </div>
               ))}
@@ -266,16 +268,16 @@ const [dashboardData, setDashboardData] = useState({
                 <div key={dept.Id} className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-200">
                   <div className="flex items-center justify-between mb-3">
 <h4 className="font-medium text-slate-900">{dept.Name}</h4>
-                    <Badge variant="primary" size="sm">{dept.active_staff_c || dept.activeStaff} staff</Badge>
+<Badge variant="primary" size="sm">{dept.active_staff_c} staff</Badge>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-600">Queue:</span>
-                      <span className="font-medium text-slate-900">{dept.current_queue_c || dept.currentQueue} patients</span>
+<span className="font-medium text-slate-900">{dept.current_queue_c} patients</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-600">Wait time:</span>
-                      <span className="font-medium text-warning">{dept.average_wait_time_c || dept.averageWaitTime} min</span>
+<span className="font-medium text-warning">{dept.average_wait_time_c} min</span>
                     </div>
                   </div>
                 </div>

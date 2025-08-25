@@ -108,12 +108,16 @@ filtered = filtered.filter(patient =>
     e.preventDefault();
     try {
 const patientData = {
-        ...formData,
+        Name: formData.name || `PAT-${Date.now()}`,
         age_c: parseInt(formData.age),
-        current_department_c: parseInt(formData.currentDepartment), // Convert to integer for lookup field
-        allergies: formData.allergies.split(",").map(a => a.trim()).filter(a => a),
-        admission_date_c: new Date().toISOString(),
-        Name: `PAT-${Date.now()}`
+        gender_c: formData.gender,
+        phone_c: formData.phone,
+        emergency_contact_c: formData.emergencyContact,
+        blood_group_c: formData.bloodGroup,
+        allergies_c: formData.allergies, // Store as multiline text
+        current_department_c: parseInt(formData.currentDepartment),
+        status_c: formData.status,
+        admission_date_c: new Date().toISOString()
       };
 
       const newPatient = await patientService.create(patientData);
