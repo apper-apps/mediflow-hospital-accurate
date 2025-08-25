@@ -17,8 +17,16 @@ const Departments = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
-
+const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    capacity: "",
+    activeStaff: "",
+    currentQueue: 0,
+    averageWaitTime: 30
+  });
   const loadData = async () => {
     try {
       setLoading(true);
@@ -38,7 +46,35 @@ const Departments = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+}, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const departmentData = {
+        ...formData,
+        capacity: parseInt(formData.capacity),
+        activeStaff: parseInt(formData.activeStaff),
+        currentQueue: 0,
+        averageWaitTime: 30
+      };
+
+      const newDepartment = await departmentService.create(departmentData);
+      setDepartments(prev => [newDepartment, ...prev]);
+      setShowAddForm(false);
+      setFormData({
+        name: "",
+        description: "",
+        capacity: "",
+        activeStaff: "",
+        currentQueue: 0,
+        averageWaitTime: 30
+      });
+      toast.success("Department added successfully!");
+    } catch (err) {
+      toast.error("Failed to add department");
+    }
+  };
 
   const getDepartmentPatients = (departmentName) => {
     return patients.filter(patient => patient.currentDepartment === departmentName.toLowerCase());
@@ -105,17 +141,117 @@ const Departments = () => {
           </h2>
           <p className="text-slate-600 mt-1">Monitor queues and workflow across departments</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm">
+<div className="flex items-center space-x-2">
+          <Button 
+            onClick={() => setShowAddForm(true)}
+            variant="primary"
+            className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg"
+          >
+            <ApperIcon name="Plus" className="w-4 h-4 mr-2" />
+            Add Department
+          </Button>
+          <Button variant="ghost" size="sm" onClick={loadData}>
             <ApperIcon name="RefreshCw" className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Button variant="primary">
+          <Button variant="ghost" size="sm">
             <ApperIcon name="Settings" className="w-4 h-4 mr-2" />
             Settings
           </Button>
         </div>
-      </div>
+</div>
+
+      {/* Add Department Form */}
+      {showAddForm && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+        >
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-slate-900">Add New Department</h3>
+                <Button variant="ghost" onClick={() => setShowAddForm(false)}>
+                  <ApperIcon name="X" className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Department Name</label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      className="flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      placeholder="e.g., Cardiology, Emergency"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Capacity</label>
+                    <input
+                      type="number"
+                      value={formData.capacity}
+                      onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
+                      className="flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      placeholder="50"
+                      min="1"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Active Staff</label>
+                    <input
+                      type="number"
+                      value={formData.activeStaff}
+                      onChange={(e) => setFormData(prev => ({ ...prev, activeStaff: e.target.value }))}
+                      className="flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      placeholder="5"
+                      min="1"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Average Wait Time (minutes)</label>
+                    <input
+                      type="number"
+                      value={formData.averageWaitTime}
+                      onChange={(e) => setFormData(prev => ({ ...prev, averageWaitTime: parseInt(e.target.value) }))}
+                      className="flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      placeholder="30"
+                      min="0"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Brief description of the department's services and specialties..."
+                    className="flex w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[100px]"
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="submit" variant="primary" className="flex-1">
+                    Add Department
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => setShowAddForm(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Department Cards Grid */}
       {departments.length === 0 ? (
